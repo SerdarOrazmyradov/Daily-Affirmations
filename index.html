@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="emerald" class="transition-colors duration-300">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serene - Daily Affirmations</title>
+  <!-- Tailwind CSS & DaisyUI CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.1/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .fade-enter { opacity: 0; transform: translateY(8px); }
+    .fade-active { opacity: 1; transform: translateY(0); transition: opacity 0.4s ease, transform 0.4s ease; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-base-300 text-base-content flex flex-col justify-between p-4 sm:p-6 transition-colors duration-300">
+
+  <!-- Header Section -->
+  <header class="max-w-3xl w-full mx-auto flex justify-between items-center py-2">
+    <div class="flex items-center gap-2">
+      <div class="p-2 bg-primary/10 text-primary rounded-xl">
+        <i data-lucide="sparkles" class="w-6 h-6"></i>
+      </div>
+      <h1 class="text-xl font-bold tracking-tight">Serene</h1>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <!-- Dark Mode Toggle -->
+      <button id="themeToggleBtn" class="btn btn-ghost btn-circle btn-sm sm:btn-md" title="Toggle Theme">
+        <i id="themeIcon" data-lucide="moon" class="w-5 h-5"></i>
+      </button>
+      
+      <!-- Favorites Modal Trigger -->
+      <button onclick="favoritesModal.showModal()" class="btn btn-ghost btn-circle btn-sm sm:btn-md relative" title="Saved Favorites">
+        <i data-lucide="heart" class="w-5 h-5 text-error"></i>
+        <span id="favCountBadge" class="badge badge-xs badge-error absolute top-1 right-1 hidden">0</span>
+      </button>
+
+      <!-- Add Custom Affirmation Modal Trigger -->
+      <button onclick="addModal.showModal()" class="btn btn-primary btn-sm rounded-xl gap-1" title="Add Affirmation">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        <span class="hidden sm:inline">Add</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content / Affirmation Card -->
+  <main class="max-w-2xl w-full mx-auto my-auto py-8">
+    <div class="card bg-base-100/80 backdrop-blur-md shadow-xl border border-base-content/5 p-6 sm:p-10 text-center relative overflow-hidden transition-all duration-300">
+      
+      <!-- Category Badge -->
+      <div class="flex justify-center mb-6">
+        <span id="affirmationCategory" class="badge badge-primary badge-outline text-xs uppercase tracking-wider px-3 py-2 font-medium">
+          Self-Love
+        </span>
+      </div>
+
+      <!-- Affirmation Text Area -->
+      <div id="affirmationContainer" class="fade-active min-h-[140px] flex flex-col justify-center items-center">
+        <p id="affirmationText" class="text-2xl sm:text-3xl font-medium leading-relaxed italic text-base-content/90">
+          "Loading your daily dose of positivity..."
+        </p>
+        <p id="affirmationAuthor" class="mt-4 text-sm text-base-content/60 font-medium">
+          — Anonymous
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-center items-center gap-4 mt-8 pt-4 border-t border-base-content/5">
+        <!-- Bookmark / Favorite Button -->
+        <button id="favBtn" class="btn btn-outline btn-circle border-base-300 hover:border-error hover:bg-error/10 hover:text-error transition-all" title="Save to favorites">
+          <i id="favIcon" data-lucide="heart" class="w-5 h-5"></i>
+        </button>
+
+        <!-- New Affirmation Button -->
+        <button id="nextBtn" class="btn btn-primary rounded-xl px-6 gap-2 shadow-md hover:shadow-lg transition-all">
+          <i data-lucide="refresh-cw" class="w-4 h-4" id="refreshIcon"></i>
+          <span>New Affirmation</span>
+        </button>
+
+        <!-- Copy to Clipboard Button -->
+        <button id="copyBtn" class="btn btn-outline btn-circle border-base-300 hover:bg-base-200 transition-all" title="Copy to clipboard">
+          <i data-lucide="copy" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center py-4 text-xs text-base-content/50">
+    <p>Take a deep breath and carry peace within your heart.</p>
+  </footer>
+
+  <!-- Modal 1: Favorites Drawer/List -->
+  <dialog id="favoritesModal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-lg max-h-[80vh] flex flex-col p-6">
+      <div class="flex justify-between items-center pb-3 border-b border-base-content/10">
+        <h3 class="font-bold text-lg flex items-center gap-2">
+          <i data-lucide="heart" class="w-5 h-5 text-error fill-error"></i>
+          Saved Affirmations
+        </h3>
+        <form method="dialog">
+          <button class="btn btn-sm btn-circle btn-ghost">✕</button>
+        </form>
+      </div>
+      
+      <div id="favoritesList" class="flex-1 overflow-y-auto my-4 space-y-3 pr-1">
+        <!-- Dynamically rendered favorites -->
+      </div>
+
+      <div class="modal-action border-t border-base-content/10 pt-3">
+        <form method="dialog" class="w-full">
+          <button class="btn btn-block btn-ghost">Close</button>
+        </form>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
+  <!-- Modal 2: Add Custom Affirmation -->
+  <dialog id="addModal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-md">
+      <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+        <i data-lucide="plus-circle" class="w-5 h-5 text-primary"></i>
+        Add Personal Affirmation
+      </h3>
+      
+      <form id="addAffirmationForm" class="space-y-4">
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Affirmation Text</span></label>
+          <textarea id="customText" class="textarea textarea-bordered h-24 focus:textarea-primary" placeholder="I am resilient, capable, and worthy of peace..." required></textarea>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Category</span></label>
+          <select id="customCategory" class="select select-bordered w-full focus:select-primary">
+            <option value="Self-Love">Self-Love</option>
+            <option value="Mindfulness">Mindfulness</option>
+            <option value="Growth">Growth</option>
+            <option value="Gratitude">Gratitude</option>
+            <option value="Strength">Strength</option>
+          </select>
+        </div>
+
+        <div class="modal-action">
+          <button type="button" onclick="addModal.close()" class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save & Display</button>
+        </div>
+      </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast toast-end toast-bottom z-50"></div>
+
+  <!-- Main JavaScript Logic -->
+  <script>
+    // Initial Affirmations Dataset
+    const defaultAffirmations = [
+      { id: '1', text: "I am in charge of how I feel, and today I choose happiness.", author: "Daily Mind", category: "Mindfulness" },
+      { id: '2', text: "My possibilities are endless, and my potential is limitless.", author: "Unknown", category: "Growth" },
+      { id: '3', text: "I forgive myself for past mistakes and embrace present peace.", author: "Self-Care", category: "Self-Love" },
+      { id: '4', text: "I am worthy of respect, kindness, and unyielding happiness.", author: "Positive Vibe", category: "Self-Love" },
+      { id: '5', text: "Every breath I take fills me with tranquil energy.", author: "Calm Mind", category: "Mindfulness" },
+      { id: '6', text: "I welcome growth, learning, and new challenges with open arms.", author: "Daily Mind", category: "Growth" },
+      { id: '7', text: "I am grateful for everything I have and all that is yet to come.", author: "Gratitude Daily", category: "Gratitude" },
+      { id: '8', text: "I possess the courage to overcome any obstacle in my path.", author: "Inner Strength", category: "Strength" }
+    ];
+
+    // State Variables
+    let affirmations = JSON.parse(localStorage.getItem('serene_affirmations')) || defaultAffirmations;
+    let favorites = JSON.parse(localStorage.getItem('serene_favorites')) || [];
+    let currentAffirmation = null;
+
+    // DOM Elements
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    const affirmationContainer = document.getElementById('affirmationContainer');
+    const affirmationText = document.getElementById('affirmationText');
+    const affirmationAuthor = document.getElementById('affirmationAuthor');
+    const affirmationCategory = document.getElementById('affirmationCategory');
+    const nextBtn = document.getElementById('nextBtn');
+    const favBtn = document.getElementById('favBtn');
+    const favIcon = document.getElementById('favIcon');
+    const copyBtn = document.getElementById('copyBtn');
+    const favCountBadge = document.getElementById('favCountBadge');
+    const favoritesList = document.getElementById('favoritesList');
+    const addAffirmationForm = document.getElementById('addAffirmationForm');
+
+    // Theme Management
+    function initTheme() {
+      const savedTheme = localStorage.getItem('serene_theme') || 'emerald';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'emerald' ? 'forest' : 'emerald';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('serene_theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+      themeIcon.setAttribute('data-lucide', theme === 'forest' ? 'sun' : 'moon');
+      lucide.createIcons();
+    }
+
+    // Affirmation Engine
+    function getRandomAffirmation() {
+      if (affirmations.length === 0) return null;
+      let available = affirmations.filter(a => !currentAffirmation || a.id !== currentAffirmation.id);
+      if (available.length === 0) available = affirmations;
+      const index = Math.floor(Math.random() * available.length);
+      return available[index];
+    }
+
+    function displayAffirmation(affirmation) {
+      if (!affirmation) return;
+      currentAffirmation = affirmation;
+
+      // Smooth Fade-out & Fade-in Effect
+      affirmationContainer.classList.remove('fade-active');
+      affirmationContainer.classList.add('fade-enter');
+
+      setTimeout(() => {
+        affirmationText.textContent = `"${affirmation.text}"`;
+        affirmationAuthor.textContent = `— ${affirmation.author || 'Anonymous'}`;
+        affirmationCategory.textContent = affirmation.category || 'General';
+
+        updateFavButtonState();
+
+        affirmationContainer.classList.remove('fade-enter');
+        affirmationContainer.classList.add('fade-active');
+      }, 200);
+    }
+
+    function nextAffirmation() {
+      const refreshIcon = document.getElementById('refreshIcon');
+      refreshIcon.classList.add('animate-spin');
+      setTimeout(() => refreshIcon.classList.remove('animate-spin'), 500);
+
+      const newAffirmation = getRandomAffirmation();
+      displayAffirmation(newAffirmation);
+    }
+
+    // Favorite Actions
+    function updateFavButtonState() {
+      const isFav = favorites.some(item => item.id === currentAffirmation.id);
+      if (isFav) {
+        favBtn.classList.add('bg-error/10', 'text-error', 'border-error');
+        favIcon.setAttribute('fill', 'currentColor');
+      } else {
+        favBtn.classList.remove('bg-error/10', 'text-error', 'border-error');
+        favIcon.setAttribute('fill', 'none');
+      }
+      lucide.createIcons();
+    }
+
+    function toggleFavorite() {
+      if (!currentAffirmation) return;
+      const index = favorites.findIndex(item => item.id === currentAffirmation.id);
+
+      if (index === -1) {
+        favorites.push(currentAffirmation);
+        showToast('Saved to favorites!', 'success');
+      } else {
+        favorites.splice(index, 1);
+        showToast('Removed from favorites.', 'info');
+      }
+
+      localStorage.setItem('serene_favorites', JSON.stringify(favorites));
+      updateFavButtonState();
+      renderFavorites();
+    }
+
+    function removeFavorite(id) {
+      favorites = favorites.filter(item => item.id !== id);
+      localStorage.setItem('serene_favorites', JSON.stringify(favorites));
+      if (currentAffirmation && currentAffirmation.id === id) {
+        updateFavButtonState();
+      }
+      renderFavorites();
+      showToast('Removed from favorites.', 'info');
+    }
+
+    function renderFavorites() {
+      // Update Badge
+      favCountBadge.textContent = favorites.length;
+      favCountBadge.classList.toggle('hidden', favorites.length === 0);
+
+      // Render Favorites List
+      if (favorites.length === 0) {
+        favoritesList.innerHTML = `
+          <div class="text-center py-8 text-base-content/50">
+            <i data-lucide="heart-off" class="w-10 h-10 mx-auto mb-2 opacity-40"></i>
+            <p>No saved affirmations yet.</p>
+          </div>
+        `;
+      } else {
+        favoritesList.innerHTML = favorites.map(item => `
+          <div class="p-4 rounded-xl bg-base-200/60 border border-base-content/5 flex items-start justify-between gap-3 group">
+            <div class="flex-1">
+              <span class="badge badge-xs badge-outline mb-1 text-[10px] uppercase">${item.category || 'General'}</span>
+              <p class="text-sm italic font-medium">"${item.text}"</p>
+            </div>
+            <div class="flex gap-1 shrink-0">
+              <button onclick="copyToClipboard('${item.text.replace(/'/g, "\\'")}')" class="btn btn-xs btn-ghost btn-circle" title="Copy text">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="removeFavorite('${item.id}')" class="btn btn-xs btn-ghost btn-circle text-error" title="Remove">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+      lucide.createIcons();
+    }
+
+    // Add Custom Affirmation
+    addAffirmationForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const textInput = document.getElementById('customText');
+      const categoryInput = document.getElementById('customCategory');
+
+      const newAff = {
+        id: Date.now().toString(),
+        text: textInput.value.trim(),
+        author: 'You',
+        category: categoryInput.value
+      };
+
+      affirmations.push(newAff);
+      localStorage.setItem('serene_affirmations', JSON.stringify(affirmations));
+
+      displayAffirmation(newAff);
+      textInput.value = '';
+      document.getElementById('addModal').close();
+      showToast('New affirmation added!', 'success');
+    });
+
+    // Copy to Clipboard Utility
+    function copyToClipboard(text) {
+      const targetText = text || (currentAffirmation ? currentAffirmation.text : '');
+      if (!targetText) return;
+
+      const tempInput = document.createElement('textarea');
+      tempInput.value = targetText;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+
+      showToast('Copied to clipboard!', 'success');
+    }
+
+    // Notification Toast Utility
+    function showToast(message, type = 'info') {
+      const toastContainer = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const alertClass = type === 'success' ? 'alert-success' : 'alert-info';
+      
+      toast.className = `alert ${alertClass} text-xs py-2 px-4 shadow-lg rounded-xl transition-all duration-300 transform translate-y-2 opacity-0`;
+      toast.innerHTML = `<span>${message}</span>`;
+      
+      toastContainer.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // Event Listeners Initialization
+    themeToggleBtn.addEventListener('click', toggleTheme);
+    nextBtn.addEventListener('click', nextAffirmation);
+    favBtn.addEventListener('click', toggleFavorite);
+    copyBtn.addEventListener('click', () => copyToClipboard());
+
+    // Application Bootstrap
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      renderFavorites();
+      displayAffirmation(getRandomAffirmation());
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
